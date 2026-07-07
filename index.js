@@ -45,6 +45,24 @@ async function run() {
             res.send(result);
         });
 
+
+        // GET single doctor by id : view detail er jonu
+        app.get("/api/doctors/:id", async (req, res) => {
+            try {
+                const id = req.params.id;
+                const query = { _id: new ObjectId(id) };
+                const result = await doctorsCollection.findOne(query);
+
+                if (!result) {
+                    return res.status(404).send({ success: false, message: "Doctor not found" });
+                }
+
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ success: false, message: error.message });
+            }
+        });
+
         // APPROVE doctor
         app.patch("/api/doctors/approve/:id", async (req, res) => {
             const id = req.params.id;
@@ -56,15 +74,15 @@ async function run() {
         });
 
         // DELETE doctor
-    
-        app.delete("/api/doctors/:id", async (req,res)=>{
-            try{
+
+        app.delete("/api/doctors/:id", async (req, res) => {
+            try {
                 const id = req.params.id;
-                const query = {_id:new ObjectId(id)}
+                const query = { _id: new ObjectId(id) }
                 const result = await doctorsCollection.deleteOne(query);
                 res.send(result)
-            }catch(error){
-                res.status(500).send({ success:false , message: error.message});
+            } catch (error) {
+                res.status(500).send({ success: false, message: error.message });
             }
         })
 
