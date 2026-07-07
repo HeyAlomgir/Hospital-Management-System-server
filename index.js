@@ -31,6 +31,8 @@ async function run() {
         const usersCollection = db.collection("users");
         const doctorsCollection = db.collection("doctor")
         const appointmentsCollection = db.collection("appointments");
+        const reviewsCollectin = db.collection("review");
+        const bookmarksCollection = db.collection("bookmarks")
 
 
         app.post("/api/doctors", async (req, res) => {
@@ -85,6 +87,85 @@ async function run() {
                 res.status(500).send({ success: false, message: error.message });
             }
         })
+
+
+        // ---------- REVIEWS ----------
+
+        // Add a review
+
+        app.post("/api/reviews", async (req, res) => {
+            try {
+                const review = req.body;
+                const result = await reviewsCollectin.insertOne(review);
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ success: false, message: error.message });
+            }
+        })
+
+
+        // // Get all reviews for a specific doctor
+
+        app.get("/api/reviews/:doctorId", async (req, res) => {
+            try {
+                const doctorId = req.params.doctorId;
+                const result = await reviewsCollectin.find({ doctorId }).sort({ createdAt: -1 }).toArray();
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ success: false, message: error.message });
+            }
+        })
+
+
+        // ---------- BOOKMARKS ----------
+
+        // Add a bookmark
+
+
+        app.post("/api/bookmarks", async (req, res) => {
+            try {
+                const bookmark = req.body;
+
+                const exists = await bookmarksCollection.findOne({
+                    doctorId: bookmark.doctorId,
+                    userEmail: bookmark.userEmail,
+                });
+
+                if (exists) {
+                    return res.status(409).send({ success: false, message: "Already bookmarked" });
+                }
+
+                bookmark.createdAt = new Date();
+                const result = await bookmarksCollection.insertOne(bookmark);
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ success: false, message: error.message });
+            }
+        })
+
+
+        // Get all bookmarks for a user
+        app.get("/api/bookmarks/:userEmail", async (req, res) => {
+            try {
+                const userEmail = req.params.userEmail;
+                const result = await bookmarksCollection.find({ userEmail }).toArray();
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ success: false, message: error.message });
+            }
+        });
+
+        // Remove a bookmark
+        app.delete("/api/bookmarks/:id", async (req, res) => {
+            try {
+                const id = req.params.id;
+                const result = await bookmarksCollection.deleteOne({ _id: new ObjectId(id) });
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ success: false, message: error.message });
+            }
+        });
+
 
 
 
